@@ -1,6 +1,6 @@
 "use server";
 
-import { Types } from "mongoose";
+import mongoose from "mongoose";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
@@ -23,7 +23,7 @@ export async function toggleWishlist(listingId: string): Promise<ToggleResult> {
   const index = user.wishlist.findIndex((id) => id.toString() === listingId);
   let saved: boolean;
   if (index === -1) {
-    user.wishlist.push(new Types.ObjectId(listingId));
+    user.wishlist.push(new mongoose.Types.ObjectId(listingId));
     saved = true;
   } else {
     user.wishlist.splice(index, 1);

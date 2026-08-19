@@ -1,4 +1,8 @@
-import { Schema, model, models, Types, Model } from "mongoose";
+// See lib/models/User.ts for why this is a default import + destructure
+// rather than named imports (Mongoose's CJS named exports break under
+// tsx's native ESM loading, e.g. scripts/seed.ts).
+import mongoose, { type Model, type Types } from "mongoose";
+const { Schema, model, models } = mongoose;
 
 export const PAYMENT_STATUSES = ["pending", "succeeded", "failed", "refunded"] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];

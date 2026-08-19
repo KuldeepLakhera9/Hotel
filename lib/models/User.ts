@@ -1,4 +1,10 @@
-import { Schema, model, models, Types, Model } from "mongoose";
+// Mongoose is CommonJS; its named exports don't reliably map through
+// Node's native ESM loader (only through bundlers like Next's Turbopack/
+// webpack, which resolve them differently). Default-import + destructure
+// works in both contexts — see scripts/seed.ts, which runs under plain
+// Node via tsx and broke on `import { models } from "mongoose"`.
+import mongoose, { type Model, type Types } from "mongoose";
+const { Schema, model, models } = mongoose;
 import { ROLES, type Role } from "@/lib/constants/user";
 
 // Re-exported for server-side code that already imports these from here —
