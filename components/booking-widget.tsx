@@ -106,9 +106,9 @@ export function BookingWidget({ listingId, pricePerNight }: { listingId: string;
       )}
 
       <Button type="submit" size="lg" className="w-full" disabled={isPending || !breakdown}>
-        {isPending ? "Booking..." : "Book Now"}
+        {isPending ? "Redirecting to checkout..." : "Book Now"}
       </Button>
-      <p className="text-center text-xs text-muted-foreground">You won&apos;t be charged yet</p>
+      <p className="text-center text-xs text-muted-foreground">You&apos;ll be redirected to secure Stripe checkout</p>
     </form>
   );
 }

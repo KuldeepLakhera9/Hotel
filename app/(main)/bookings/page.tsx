@@ -9,15 +9,26 @@ import { CancelBookingButton } from "@/components/cancel-booking-button";
 
 export const metadata: Metadata = { title: "My Bookings — Wanderlust" };
 
-export default async function BookingsPage() {
+export default async function BookingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ payment?: string }>;
+}) {
   const session = await auth();
   if (!session?.user) redirect("/login?callbackUrl=/bookings");
 
+  const { payment } = await searchParams;
   const bookings = await getUserBookings(session.user.id);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 md:px-6">
       <h1 className="mb-6 text-2xl font-bold">My Booked Stays</h1>
+
+      {payment === "success" && (
+        <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+          Payment received! We&apos;re confirming your booking — this page will update shortly.
+        </div>
+      )}
 
       {bookings.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border p-16 text-center text-muted-foreground">

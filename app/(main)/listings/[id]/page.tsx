@@ -42,8 +42,15 @@ export async function generateMetadata({
   };
 }
 
-export default async function ListingShowPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ListingShowPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ payment?: string }>;
+}) {
   const { id } = await params;
+  const { payment } = await searchParams;
   const [listing, session] = await Promise.all([getListingById(id), auth()]);
 
   if (!listing) notFound();
@@ -54,6 +61,12 @@ export default async function ListingShowPage({ params }: { params: Promise<{ id
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 md:px-6">
+      {payment === "cancelled" && (
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          Checkout was cancelled — no charge was made. Your dates are still available.
+        </div>
+      )}
+
       <div className="flex items-start justify-between gap-4">
         <div>
           <Badge variant="secondary" className="mb-2">
