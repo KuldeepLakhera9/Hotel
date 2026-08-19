@@ -1,20 +1,12 @@
 import { Schema, model, models, Types, Model } from "mongoose";
 import { Review } from "./Review";
+import { LISTING_CATEGORIES, AMENITY_OPTIONS, type ListingCategory } from "@/lib/constants/listing";
 
-export const LISTING_CATEGORIES = [
-  "Trending",
-  "Rooms",
-  "Iconic Cities",
-  "Mountains",
-  "Castles",
-  "Camping",
-  "Farms",
-  "Arctic",
-  "Domes",
-  "Boats",
-  "Pools",
-] as const;
-export type ListingCategory = (typeof LISTING_CATEGORIES)[number];
+// Re-exported for server-side code that already imports these from here —
+// the canonical definitions live in lib/constants/listing.ts (no Mongoose
+// import) so Client Components can import just the constants safely.
+export { LISTING_CATEGORIES, AMENITY_OPTIONS };
+export type { ListingCategory };
 
 export interface IListing {
   _id: Types.ObjectId;
