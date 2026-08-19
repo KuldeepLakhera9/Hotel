@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ListingMapWrapper } from "@/components/listing-map-wrapper";
 import { ReviewForm } from "@/components/review-form";
+import { BookingWidget } from "@/components/booking-widget";
 import { ReviewItem } from "@/components/review-item";
 import { WishlistButton } from "@/components/wishlist-button";
 import { DeleteListingButton } from "@/components/delete-listing-button";
@@ -156,13 +157,20 @@ export default async function ListingShowPage({ params }: { params: Promise<{ id
         </div>
 
         <div>
-          <div className="sticky top-24 rounded-2xl border border-border p-5 shadow-sm">
-            <p className="text-lg font-semibold">
-              ₹{listing.price.toLocaleString("en-IN")} <span className="text-sm font-normal text-muted-foreground">/ night</span>
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Booking is coming in the next phase of the migration — check back soon to reserve your stay.
-            </p>
+          <div className="sticky top-24">
+            {session?.user ? (
+              <BookingWidget listingId={id} pricePerNight={listing.price} />
+            ) : (
+              <div className="rounded-2xl border border-border p-5 shadow-sm">
+                <p className="text-lg font-semibold">
+                  ₹{listing.price.toLocaleString("en-IN")}{" "}
+                  <span className="text-sm font-normal text-muted-foreground">/ night</span>
+                </p>
+                <Button asChild size="lg" className="mt-4 w-full">
+                  <Link href={`/login?callbackUrl=/listings/${id}`}>Log in to book</Link>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
