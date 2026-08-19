@@ -1,0 +1,41 @@
+import { Schema, model, models, Types, Model } from "mongoose";
+
+export const ROLES = ["SUPER_ADMIN", "ADMIN", "SUPPORT_ADMIN", "HOST", "USER"] as const;
+export type Role = (typeof ROLES)[number];
+
+export interface IUser {
+  _id: Types.ObjectId;
+  username: string;
+  email: string;
+  // credentials-auth users: PBKDF2 hash/salt, compatible with the legacy
+  // passport-local-mongoose format so existing passwords keep working.
+  // OAuth-only users (Google) have neither.
+  hash?: string;
+  salt?: string;
+  googleId?: string;
+  role: Role;
+  status: "active" | "suspended" | "banned";
+  wishlist: Types.ObjectId[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const userSchema = new Schema<IUser>(
+  {
+    username: { type: String, required: true, unique: true, trim: true },
+    email: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    hash: { type: String, select: false },
+    salt: { type: String, select: false },
+    googleId: { type: String },
+    role: { type: String, enum: ROLES, default: "USER" },
+    status: {
+      type: String,
+      enum: ["active", "suspended", "banned"],
+      default: "active",
+    },
+    wishlist: [{ type: Schema.Types.ObjectId, ref: "Listing" }],
+  },
+  { timestamps: true }
+);
+
+export const User = (models.User as Model<IUser>) || model<IUser>("User", userSchema);
