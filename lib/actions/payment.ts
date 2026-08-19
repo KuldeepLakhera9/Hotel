@@ -6,23 +6,26 @@ import { connectDB } from "@/lib/db";
 import { Payment } from "@/lib/models/Payment";
 import { getStripe } from "@/lib/stripe";
 import { logAdminAction } from "@/lib/audit";
-import type { Role } from "@/lib/models/User";
+import { hasPermission } from "@/lib/rbac";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-const REFUND_ROLES = new Set<Role>(["SUPER_ADMIN", "ADMIN"]);
-
 /**
- * Admin-triggered refund (SUPER_ADMIN/ADMIN only — SUPPORT_ADMIN is
- * explicitly view-only and cannot issue refunds per the RBAC spec). Only
- * calls Stripe's refund API; Booking/Payment status flips to
+ * SUPER_ADMIN only. The master prompt's Payment section said "SUPER_ADMIN/
+ * ADMIN can trigger a refund," but its RBAC role list separately says ADMIN
+ * has "no refunds" — a direct contradiction. Confirmed with the user: the
+ * RBAC list governs, so this is SUPER_ADMIN-only (this action originally
+ * shipped in Phase 5 allowing ADMIN too; narrowed here once the conflict
+ * was caught while wiring up the admin UI that actually exposes it).
+ *
+ * Only calls Stripe's refund API; Booking/Payment status flips to
  * Refunded/refunded via the charge.refunded webhook, not synchronously
  * here, so a failed webhook delivery can't leave the DB out of sync with
  * what Stripe actually did.
  */
 export async function refundBooking(bookingId: string): Promise<ActionResult> {
   const session = await auth();
-  if (!session?.user || !REFUND_ROLES.has(session.user.role)) {
+  if (!session?.user || !hasPermission(session.user.role, "issueRefunds")) {
     return { success: false, error: "You do not have permission to issue refunds" };
   }
 

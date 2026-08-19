@@ -9,6 +9,7 @@ import { User } from "@/lib/models/User";
 import { listingSchema, type ListingInput } from "@/lib/validations/listing";
 import { geocodeLocation } from "@/lib/geocode";
 import { deleteCloudinaryAsset } from "@/lib/cloudinary";
+import { hasPermission } from "@/lib/rbac";
 
 const DEFAULT_IMAGE = {
   url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
@@ -73,7 +74,7 @@ export async function updateListing(id: string, input: ListingInput): Promise<Ac
   if (!listing) {
     return { success: false, error: "Listing not found" };
   }
-  if (!listing.owner.equals(session.user.id)) {
+  if (!listing.owner.equals(session.user.id) && !hasPermission(session.user.role, "manageListings")) {
     return { success: false, error: "You are not the owner of this listing" };
   }
 

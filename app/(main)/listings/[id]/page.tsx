@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { getListingById } from "@/lib/data/listings";
 import { getUserWishlistIds } from "@/lib/data/users";
 import { getAverageRating } from "@/lib/rating";
+import { hasPermission } from "@/lib/rbac";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ListingMapWrapper } from "@/components/listing-map-wrapper";
@@ -55,8 +56,15 @@ export default async function ListingShowPage({
 
   if (!listing) notFound();
 
-  const wishlistIds = session?.user ? await getUserWishlistIds(session.user.id) : [];
   const isOwner = !!(session?.user && listing.owner && listing.owner._id.toString() === session.user.id);
+  const isAdmin = !!(session?.user && hasPermission(session.user.role, "manageListings"));
+  // Deactivated listings stay visible to their owner and to admins, but
+  // are otherwise treated as if they don't exist — not shown as
+  // "unavailable," just a plain 404, matching how the public index
+  // already silently excludes them.
+  if (!listing.isActive && !isOwner && !isAdmin) notFound();
+
+  const wishlistIds = session?.user ? await getUserWishlistIds(session.user.id) : [];
   const averageRating = getAverageRating(listing.reviews);
 
   return (
@@ -64,6 +72,13 @@ export default async function ListingShowPage({
       {payment === "cancelled" && (
         <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
           Checkout was cancelled — no charge was made. Your dates are still available.
+        </div>
+      )}
+
+      {!listing.isActive && (
+        <div className="mb-6 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          This listing has been deactivated by an admin and isn&apos;t visible in public search.
+          {isOwner && " Contact support if you believe this is a mistake."}
         </div>
       )}
 

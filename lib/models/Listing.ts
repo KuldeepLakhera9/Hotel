@@ -21,6 +21,11 @@ export interface IListing {
   amenities: string[];
   reviews: Types.ObjectId[];
   owner: Types.ObjectId;
+  // After-the-fact moderation, not a pre-publish approval gate — listings
+  // still go live immediately on creation. An ADMIN/SUPER_ADMIN can hide a
+  // problematic listing from public browsing without deleting it (which
+  // would cascade-delete its reviews and orphan any booking history).
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,6 +49,7 @@ const listingSchema = new Schema<IListing>(
     amenities: [{ type: String }],
     reviews: [{ type: Schema.Types.ObjectId, ref: "Review" }],
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
@@ -51,6 +57,7 @@ const listingSchema = new Schema<IListing>(
 listingSchema.index({ location: "text", country: "text", title: "text", description: "text" });
 listingSchema.index({ category: 1 });
 listingSchema.index({ price: 1 });
+listingSchema.index({ isActive: 1 });
 
 // Cascade-delete a listing's reviews. Only fires for findOneAndDelete /
 // findByIdAndDelete (what the app actually uses) — a deleteOne/deleteMany

@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { getListingById } from "@/lib/data/listings";
+import { hasPermission } from "@/lib/rbac";
 import { ListingForm } from "@/components/listing-form";
 
 export const metadata: Metadata = { title: "Edit listing — Wanderlust" };
@@ -11,7 +12,9 @@ export default async function EditListingPage({ params }: { params: Promise<{ id
   const [listing, session] = await Promise.all([getListingById(id), auth()]);
 
   if (!listing) notFound();
-  if (!session?.user || !listing.owner || listing.owner._id.toString() !== session.user.id) {
+  const isOwner = !!(session?.user && listing.owner && listing.owner._id.toString() === session.user.id);
+  const isAdmin = !!(session?.user && hasPermission(session.user.role, "manageListings"));
+  if (!isOwner && !isAdmin) {
     redirect(`/listings/${id}`);
   }
 

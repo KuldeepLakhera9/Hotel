@@ -1,7 +1,11 @@
 import { Schema, model, models, Types, Model } from "mongoose";
+import { ROLES, type Role } from "@/lib/constants/user";
 
-export const ROLES = ["SUPER_ADMIN", "ADMIN", "SUPPORT_ADMIN", "HOST", "USER"] as const;
-export type Role = (typeof ROLES)[number];
+// Re-exported for server-side code that already imports these from here —
+// the canonical definitions live in lib/constants/user.ts (no Mongoose
+// import) so Client Components can import just the constants safely.
+export { ROLES };
+export type { Role };
 
 export interface IUser {
   _id: Types.ObjectId;

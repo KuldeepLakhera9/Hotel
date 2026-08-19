@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-
-const ADMIN_ROLES = new Set(["SUPER_ADMIN", "ADMIN", "SUPPORT_ADMIN"]);
+import { hasPermission } from "@/lib/rbac";
 
 // Optimistic auth gate only (session/role from the JWT cookie, no DB call).
 // Per-resource checks that need a DB read (e.g. "does this user own this
@@ -19,7 +18,7 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (pathname.startsWith("/admin") && !ADMIN_ROLES.has(session.user.role)) {
+  if (pathname.startsWith("/admin") && !hasPermission(session.user.role, "viewAdminPanel")) {
     return NextResponse.redirect(new URL("/listings", req.nextUrl.origin));
   }
 

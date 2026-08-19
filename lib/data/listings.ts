@@ -6,7 +6,10 @@ import type { IReview } from "@/lib/models/Review";
 
 export async function getListings(params: { category?: string; query?: string }) {
   await connectDB();
-  const filter: Record<string, unknown> = {};
+  // Public browsing only ever sees active listings — an admin-deactivated
+  // one stays visible to its owner (host dashboard) and to admins, just
+  // not here.
+  const filter: Record<string, unknown> = { isActive: true };
   if (params.category) filter.category = params.category;
   if (params.query) filter.$text = { $search: params.query };
 
