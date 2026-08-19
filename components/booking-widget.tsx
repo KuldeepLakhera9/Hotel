@@ -12,6 +12,21 @@ function todayISO() {
   return new Date().toISOString().split("T")[0]!;
 }
 
+// Native date inputs only pop the calendar when you hit their tiny icon —
+// showPicker() opens it on any click on the field, which reads much more
+// like an actual date picker. Chromium-only (Brave/Chrome/Edge); browsers
+// without it just fall back to normal click-to-focus, no error either way.
+function openDatePicker(e: React.MouseEvent<HTMLInputElement>) {
+  const input = e.currentTarget;
+  if ("showPicker" in input) {
+    try {
+      input.showPicker();
+    } catch {
+      // ignore — e.g. fires if called before the input is fully interactive
+    }
+  }
+}
+
 export function BookingWidget({ listingId, pricePerNight }: { listingId: string; pricePerNight: number }) {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
@@ -50,7 +65,8 @@ export function BookingWidget({ listingId, pricePerNight }: { listingId: string;
             min={todayISO()}
             value={checkIn}
             onChange={(e) => setCheckIn(e.target.value)}
-            className="mt-1"
+            onClick={openDatePicker}
+            className="mt-1 cursor-pointer"
             required
           />
         </div>
@@ -62,7 +78,8 @@ export function BookingWidget({ listingId, pricePerNight }: { listingId: string;
             min={checkIn || todayISO()}
             value={checkOut}
             onChange={(e) => setCheckOut(e.target.value)}
-            className="mt-1"
+            onClick={openDatePicker}
+            className="mt-1 cursor-pointer"
             required
           />
         </div>
