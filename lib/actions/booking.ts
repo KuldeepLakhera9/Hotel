@@ -80,6 +80,20 @@ export async function createBooking(listingId: string, input: BookingInput): Pro
   const baseUrl = await getBaseUrl();
   const bookingId = booking._id.toString();
 
+  // DEMO-MODE FALLBACK — remove once STRIPE_SECRET_KEY is actually set.
+  // Skips Stripe entirely and auto-confirms so the booking flow is
+  // demoable without live payment keys configured. No Payment record is
+  // created here, which is also what cancelBooking below checks to know
+  // a booking was demo-confirmed rather than actually paid (so it doesn't
+  // try to refund a charge that never happened).
+  if (!process.env.STRIPE_SECRET_KEY) {
+    booking.status = "Confirmed";
+    await booking.save();
+    revalidatePath("/bookings");
+    revalidatePath(`/listings/${listingId}`);
+    redirect("/bookings?payment=demo");
+  }
+
   let checkoutUrl: string;
   try {
     const stripe = getStripe();
@@ -155,7 +169,16 @@ export async function cancelBooking(bookingId: string): Promise<ActionError | { 
 
   if (booking.status === "Confirmed") {
     const payment = await Payment.findOne({ bookingId: booking._id, status: "succeeded" });
-    if (!payment?.stripePaymentIntentId) {
+    // No Payment record at all means this was demo-confirmed (see the
+    // STRIPE_SECRET_KEY fallback in createBooking above) — nothing was
+    // ever actually charged, so just cancel it, no refund to issue.
+    if (!payment) {
+      booking.status = "Cancelled";
+      await booking.save();
+      revalidatePath("/bookings");
+      return { success: true };
+    }
+    if (!payment.stripePaymentIntentId) {
       return { success: false, error: "Unable to locate the payment for this booking. Please contact support." };
     }
     try {

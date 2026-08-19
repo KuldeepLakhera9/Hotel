@@ -30,6 +30,12 @@ export default async function BookingsPage({
         </div>
       )}
 
+      {payment === "demo" && (
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          Demo mode: booking auto-confirmed without payment — Stripe isn&apos;t configured yet.
+        </div>
+      )}
+
       {bookings.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border p-16 text-center text-muted-foreground">
           <p className="text-lg font-semibold text-foreground">No bookings yet</p>
